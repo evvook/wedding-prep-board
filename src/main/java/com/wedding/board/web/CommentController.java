@@ -30,7 +30,7 @@ import java.util.Map;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/posts/{postId}/comments")
+@RequestMapping("/boards/{boardCode}/posts/{postId}/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -39,6 +39,7 @@ public class CommentController {
 
     @PostMapping
     public String create(
+            @PathVariable String boardCode,
             @PathVariable Long postId,
             @Valid @ModelAttribute CommentForm commentForm,
             BindingResult result,
@@ -47,6 +48,7 @@ public class CommentController {
         if (result.hasErrors()) {
             Post post = postApplicationService.getPost(postId);
             List<Comment> comments = commentApplicationService.getCommentsByPostId(postId);
+            model.addAttribute("boardCode", boardCode);
             model.addAttribute("post", post);
             model.addAttribute("comments", comments);
             model.addAttribute("commentForm", commentForm);
@@ -67,7 +69,7 @@ public class CommentController {
                 commentForm.getParentId()
         );
         commentApplicationService.createComment(command);
-        return "redirect:/posts/" + postId + "#comments";
+        return "redirect:/boards/" + boardCode + "/posts/" + postId + "#comments";
     }
 
     private int countCommentsRecursive(java.util.List<Comment> comments) {
@@ -81,6 +83,7 @@ public class CommentController {
     @PutMapping(value = "/{commentId}", produces = "application/json")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> update(
+            @PathVariable String boardCode,
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestBody CommentForm commentForm,
@@ -105,6 +108,7 @@ public class CommentController {
     @DeleteMapping(value = "/{commentId}", produces = "application/json")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> delete(
+            @PathVariable String boardCode,
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

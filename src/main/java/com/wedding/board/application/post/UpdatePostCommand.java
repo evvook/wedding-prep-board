@@ -11,4 +11,9 @@ public class UpdatePostCommand {
 
     private String title;
     private String content;
+    private String location;
+    private Integer mealPrice;
+    private Integer guaranteeMin;
+    private Integer rentalFee;
+    private Integer etcFee;
 }

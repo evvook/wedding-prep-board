@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.wedding.board.application.comment.CommentApplicationService;
 import com.wedding.board.application.comment.CreateCommentCommand;
 import com.wedding.board.application.post.PostApplicationService;
+import com.wedding.board.domain.board.Board;
 import com.wedding.board.domain.comment.Comment;
 import com.wedding.board.domain.post.Post;
 import com.wedding.board.domain.user.User;
@@ -39,36 +40,38 @@ class CommentControllerTest {
     @MockBean
     private PostApplicationService postApplicationService;
 
+    private final Board board = Board.of("GENERAL", "자유게시판");
+
     @AfterEach
     void tearDown() {
         TestSecurityUtils.clearSecurityContext();
     }
 
     @Test
-    @DisplayName("POST /posts/{postId}/comments: 댓글을 등록한다")
+    @DisplayName("POST /boards/{boardCode}/posts/{postId}/comments: 댓글을 등록한다")
     void create() throws Exception {
         TestSecurityUtils.setMockUser(1L);
         given(commentApplicationService.createComment(any(CreateCommentCommand.class))).willReturn(1L);
 
-        mockMvc.perform(post("/posts/1/comments")
+        mockMvc.perform(post("/boards/GENERAL/posts/1/comments")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("content", "댓글 내용"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/1#comments"));
+                .andExpect(redirectedUrl("/boards/GENERAL/posts/1#comments"));
 
         verify(commentApplicationService).createComment(any(CreateCommentCommand.class));
     }
 
     @Test
-    @DisplayName("POST /posts/{postId}/comments: 유효성 검증 실패 시 상세 페이지로 돌아간다")
+    @DisplayName("POST /boards/{boardCode}/posts/{postId}/comments: 유효성 검증 실패 시 상세 페이지로 돌아간다")
     void create_validationError() throws Exception {
         TestSecurityUtils.setMockUser(1L);
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         given(postApplicationService.getPost(1L)).willReturn(post);
         given(commentApplicationService.getCommentsByPostId(1L)).willReturn(List.of());
 
-        mockMvc.perform(post("/posts/1/comments")
+        mockMvc.perform(post("/boards/GENERAL/posts/1/comments")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("content", ""))
                 .andExpect(status().isOk())

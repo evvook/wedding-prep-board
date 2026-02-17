@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.wedding.board.domain.board.Board;
+import com.wedding.board.domain.board.BoardRepository;
 import com.wedding.board.domain.comment.CommentRepository;
 import com.wedding.board.domain.post.Post;
 import com.wedding.board.domain.post.PostRepository;
@@ -32,6 +34,9 @@ class PostApplicationServiceTest {
     private PostRepository postRepository;
 
     @Mock
+    private BoardRepository boardRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -40,26 +45,28 @@ class PostApplicationServiceTest {
     @InjectMocks
     private PostApplicationService postApplicationService;
 
+    private final Board board = Board.of("GENERAL", "자유게시판");
+
     @Test
     @DisplayName("getPosts: 작성일 역순으로 페이징된 게시글 목록을 반환한다")
     void getPosts() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Page<Post> page = new PageImpl<>(java.util.List.of(post));
-        given(postRepository.findAllByOrderByCreatedAtDesc(any())).willReturn(page);
+        given(postRepository.findByBoardCodeIncludingLegacy("GENERAL", any())).willReturn(page);
 
-        Page<Post> result = postApplicationService.getPosts(PageRequest.of(0, 10));
+        Page<Post> result = postApplicationService.getPosts("GENERAL", PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("제목");
-        verify(postRepository).findAllByOrderByCreatedAtDesc(any(Pageable.class));
+        verify(postRepository).findByBoardCodeIncludingLegacy("GENERAL", any(Pageable.class));
     }
 
     @Test
     @DisplayName("getPost: 존재하는 게시글을 조회한다")
     void getPost() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
         Post result = postApplicationService.getPost(1L);
@@ -81,6 +88,7 @@ class PostApplicationServiceTest {
     @Test
     @DisplayName("createPost: 게시글을 생성하고 id를 반환한다")
     void createPost() {
+        given(boardRepository.findById("GENERAL")).willReturn(Optional.of(board));
         User savedUser = User.create("user1", "encoded");
         given(userRepository.findById(1L)).willReturn(Optional.of(savedUser));
 
@@ -90,7 +98,7 @@ class PostApplicationServiceTest {
             return p;
         });
 
-        CreatePostCommand command = new CreatePostCommand("제목", "내용", 1L);
+        CreatePostCommand command = new CreatePostCommand("GENERAL", "제목", "내용", 1L, null, null, null, null, null);
         Long postId = postApplicationService.createPost(command);
 
         verify(postRepository).save(any(Post.class));
@@ -100,8 +108,9 @@ class PostApplicationServiceTest {
     @Test
     @DisplayName("createPost: 존재하지 않는 사용자로 생성 시 예외를 던진다")
     void createPost_userNotFound() {
+        given(boardRepository.findById("GENERAL")).willReturn(Optional.of(board));
         given(userRepository.findById(999L)).willReturn(Optional.empty());
-        CreatePostCommand command = new CreatePostCommand("제목", "내용", 999L);
+        CreatePostCommand command = new CreatePostCommand("GENERAL", "제목", "내용", 999L, null, null, null, null, null);
 
         assertThatThrownBy(() -> postApplicationService.createPost(command))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -112,11 +121,11 @@ class PostApplicationServiceTest {
     @DisplayName("updatePost: 게시글을 수정한다")
     void updatePost() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        UpdatePostCommand command = new UpdatePostCommand("수정 제목", "수정 내용");
+        UpdatePostCommand command = new UpdatePostCommand("수정 제목", "수정 내용", null, null, null, null, null);
         postApplicationService.updatePost(1L, command);
 
         assertThat(post.getTitle()).isEqualTo("수정 제목");

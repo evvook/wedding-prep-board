@@ -25,16 +25,27 @@
   function initPostFormAjax() {
     var form = document.getElementById('post-form');
     if (!form || !form.dataset.postId) return;
+    var boardCode = form.dataset.boardCode || 'GENERAL';
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var postId = form.dataset.postId;
-      var data = { title: form.querySelector('#title').value, content: form.querySelector('#content').value };
+      var data = {
+        title: form.querySelector('#title').value,
+        content: form.querySelector('#content').value
+      };
+      if (boardCode === 'VENUE') {
+        data.location = form.querySelector('#location') ? form.querySelector('#location').value : null;
+        data.mealPrice = form.querySelector('#mealPrice') ? parseInt(form.querySelector('#mealPrice').value, 10) || null : null;
+        data.guaranteeMin = form.querySelector('#guaranteeMin') ? parseInt(form.querySelector('#guaranteeMin').value, 10) || null : null;
+        data.rentalFee = form.querySelector('#rentalFee') ? parseInt(form.querySelector('#rentalFee').value, 10) || null : null;
+        data.etcFee = form.querySelector('#etcFee') ? parseInt(form.querySelector('#etcFee').value, 10) || null : null;
+      }
       var btn = document.getElementById('post-submit-btn');
       if (btn) btn.disabled = true;
-      BoardAjax.put('/posts/' + postId, data)
+      BoardAjax.put('/boards/' + boardCode + '/posts/' + postId, data)
         .then(function (r) { return BoardAjax.handleResponse(r); })
         .then(function (body) {
-          if (body.success) window.location.href = '/posts/' + body.id;
+          if (body.success) window.location.href = '/boards/' + boardCode + '/posts/' + body.id;
         })
         .catch(function (err) {
           if (btn) btn.disabled = false;
@@ -47,13 +58,14 @@
   function initPostDeleteAjax() {
     var btn = document.getElementById('post-delete-btn');
     if (!btn) return;
+    var boardCode = btn.dataset.boardCode || 'GENERAL';
     btn.addEventListener('click', function () {
       if (!confirm('정말 삭제하시겠습니까?')) return;
       var postId = btn.dataset.postId;
       btn.disabled = true;
-      BoardAjax.delete('/posts/' + postId)
+      BoardAjax.delete('/boards/' + boardCode + '/posts/' + postId)
         .then(function (r) { return BoardAjax.handleResponse(r); })
-        .then(function () { window.location.href = '/posts'; })
+        .then(function () { window.location.href = '/boards/' + boardCode + '/posts'; })
         .catch(function () {
           btn.disabled = false;
           alert('삭제에 실패했습니다.');
@@ -67,11 +79,12 @@
       var form = e.target;
       if (!form.classList.contains('comment-edit-form')) return;
       e.preventDefault();
+      var boardCode = form.dataset.boardCode || 'GENERAL';
       var postId = form.dataset.postId;
       var commentId = form.dataset.commentId;
       var content = (form.querySelector('input[name="content"]') || form.querySelector('textarea[name="content"]')).value;
       var wrap = form.closest('.comment-edit-form-wrap');
-      BoardAjax.put('/posts/' + postId + '/comments/' + commentId, { content: content })
+      BoardAjax.put('/boards/' + boardCode + '/posts/' + postId + '/comments/' + commentId, { content: content })
         .then(function (r) { return BoardAjax.handleResponse(r); })
         .then(function (body) {
           if (body.success) {
@@ -80,8 +93,8 @@
             var isReply = parseInt(depth, 10) > 0;
             var viewHtml = '<div class="comment-view-wrap"><p class="comment-content mb-1 mt-1' + (isReply ? ' small' : '') + '">' + escapeHtml(body.content) + '</p>' +
               '<div class="small d-flex align-items-center flex-wrap comment-actions" style="gap: 0.25rem 0.75rem;">' +
-              '<a href="/posts/' + postId + '?editComment=' + commentId + '" class="btn btn-link btn-sm p-0 m-0 text-primary text-decoration-none border-0 comment-edit-link" style="font-size: inherit; line-height: 1.5;">수정</a> ' +
-              '<button type="button" class="btn btn-link btn-sm p-0 m-0 text-danger text-decoration-none border-0 comment-delete-btn" style="font-size: inherit; line-height: 1.5;" data-post-id="' + postId + '" data-comment-id="' + commentId + '">삭제</button>' +
+              '<a href="/boards/' + boardCode + '/posts/' + postId + '?editComment=' + commentId + '" class="btn btn-link btn-sm p-0 m-0 text-primary text-decoration-none border-0 comment-edit-link" style="font-size: inherit; line-height: 1.5;">수정</a> ' +
+              '<button type="button" class="btn btn-link btn-sm p-0 m-0 text-danger text-decoration-none border-0 comment-delete-btn" style="font-size: inherit; line-height: 1.5;" data-board-code="' + boardCode + '" data-post-id="' + postId + '" data-comment-id="' + commentId + '">삭제</button>' +
               '</div></div>';
             wrap.outerHTML = viewHtml;
           }
@@ -96,11 +109,12 @@
       if (!btn) return;
       e.preventDefault();
       if (!confirm('댓글을 삭제하시겠습니까?')) return;
+      var boardCode = btn.dataset.boardCode || 'GENERAL';
       var postId = btn.dataset.postId;
       var commentId = btn.dataset.commentId;
       var item = btn.closest('.comment-item');
       btn.disabled = true;
-      BoardAjax.delete('/posts/' + postId + '/comments/' + commentId)
+      BoardAjax.delete('/boards/' + boardCode + '/posts/' + postId + '/comments/' + commentId)
         .then(function (r) { return BoardAjax.handleResponse(r); })
         .then(function () {
           var depth = item.dataset.depth || '0';

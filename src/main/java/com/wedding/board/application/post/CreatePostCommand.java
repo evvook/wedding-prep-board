@@ -9,7 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreatePostCommand {
 
+    private String boardCode;
     private String title;
     private String content;
     private Long authorId;
+    private String location;
+    private Integer mealPrice;
+    private Integer guaranteeMin;
+    private Integer rentalFee;
+    private Integer etcFee;
 }

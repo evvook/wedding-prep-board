@@ -10,7 +10,7 @@
   comment: 댓글 객체
   depth: 들여쓰기 깊이 (0=최상위)
 -->
-<th:block th:fragment="comment(comment, depth)">
+<th:block th:fragment="comment(comment, depth, boardCode, post)">
     <div th:id="'comment-' + ${comment.id}" th:classappend="${depth > 0} ? 'border-start border-2 ps-2 mb-2' : 'border-bottom pb-2 mb-2'" class="comment-item" th:data-post-id="${post.id}" th:data-comment-id="${comment.id}" th:attr="data-depth=${depth}">
         <div class="d-flex justify-content-between align-items-start">
             <strong th:classappend="${depth > 0} ? 'small' : ''" th:text="${comment.author.username}">작성자</strong>
@@ -23,12 +23,12 @@
             <div class="comment-view-wrap" th:if="${editCommentId != comment.id}">
                 <p class="comment-content" th:classappend="${depth > 0} ? 'mb-1 mt-1 small' : 'mb-1 mt-1'" th:text="${comment.content}">댓글 내용</p>
                 <div sec:authorize="isAuthenticated()" th:if="${currentUserId == comment.author.id}" class="small d-flex align-items-center flex-wrap comment-actions" style="gap: 0.25rem 0.75rem;">
-                    <a th:href="@{/posts/{id}(id=${post.id}, editComment=${comment.id})}" class="btn btn-link btn-sm p-0 m-0 text-primary text-decoration-none border-0 comment-edit-link" style="font-size: inherit; line-height: 1.5;">수정</a>
-                    <button type="button" class="btn btn-link btn-sm p-0 m-0 text-danger text-decoration-none border-0 comment-delete-btn" style="font-size: inherit; line-height: 1.5;" th:data-post-id="${post.id}" th:data-comment-id="${comment.id}">삭제</button>
+                    <a th:href="@{/boards/{boardCode}/posts/{id}(boardCode=${boardCode}, id=${post.id}, editComment=${comment.id})}" class="btn btn-link btn-sm p-0 m-0 text-primary text-decoration-none border-0 comment-edit-link" style="font-size: inherit; line-height: 1.5;">수정</a>
+                    <button type="button" class="btn btn-link btn-sm p-0 m-0 text-danger text-decoration-none border-0 comment-delete-btn" style="font-size: inherit; line-height: 1.5;" th:data-board-code="${boardCode}" th:data-post-id="${post.id}" th:data-comment-id="${comment.id}">삭제</button>
                 </div>
             </div>
             <div sec:authorize="isAuthenticated()" th:if="${editCommentId == comment.id and currentUserId == comment.author.id}" class="comment-edit-form-wrap">
-                <form class="comment-edit-form" th:object="${editCommentForm}" th:data-post-id="${post.id}" th:data-comment-id="${comment.id}" accept-charset="UTF-8">
+                <form class="comment-edit-form" th:object="${editCommentForm}" th:data-board-code="${boardCode}" th:data-post-id="${post.id}" th:data-comment-id="${comment.id}" accept-charset="UTF-8">
                     <th:block th:if="${depth > 0}">
                         <input type="text" class="form-control form-control-sm mb-1" name="content" th:field="*{content}">
                     </th:block>
@@ -36,7 +36,7 @@
                         <textarea class="form-control form-control-sm mb-1" th:field="*{content}" rows="2"></textarea>
                     </th:block>
                     <button type="submit" class="btn btn-primary btn-sm me-1">저장</button>
-                    <a th:href="|/posts/${post.id}#comments|" class="btn btn-outline-secondary btn-sm">취소</a>
+                    <a th:href="|/boards/${boardCode}/posts/${post.id}#comments|" class="btn btn-outline-secondary btn-sm">취소</a>
                 </form>
             </div>
         </div>
@@ -44,14 +44,14 @@
             <button type="button" class="btn btn-link btn-sm p-0 text-secondary" data-bs-toggle="collapse" th:data-bs-target="|#reply-form-${comment.id}|">답글</button>
         </div>
         <div th:id="'reply-form-' + ${comment.id}" th:classappend="${expandReplyFormId != null and expandReplyFormId == comment.id} ? 'show' : ''" class="collapse mt-2 ms-3">
-            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post" accept-charset="UTF-8" th:if="${commentForm == null or commentForm.parentId != comment.id}">
+            <form th:action="@{/boards/{boardCode}/posts/{postId}/comments(boardCode=${boardCode}, postId=${post.id})}" method="post" accept-charset="UTF-8" th:if="${commentForm == null or commentForm.parentId != comment.id}">
                 <input type="hidden" name="parentId" th:value="${comment.id}">
                 <div class="input-group input-group-sm">
                     <input type="text" class="form-control" name="content" placeholder="답글을 입력하세요">
                     <button type="submit" class="btn btn-outline-primary">등록</button>
                 </div>
             </form>
-            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" th:object="${commentForm}" method="post" accept-charset="UTF-8" th:if="${commentForm != null and commentForm.parentId == comment.id}">
+            <form th:action="@{/boards/{boardCode}/posts/{postId}/comments(boardCode=${boardCode}, postId=${post.id})}" th:object="${commentForm}" method="post" accept-charset="UTF-8" th:if="${commentForm != null and commentForm.parentId == comment.id}">
                 <input type="hidden" name="parentId" th:field="*{parentId}">
                 <div class="input-group input-group-sm">
                     <input type="text" class="form-control" name="content" placeholder="답글을 입력하세요" th:field="*{content}">
@@ -67,7 +67,7 @@
             <div th:id="'replies-' + ${comment.id}" class="collapse show">
                 <ul class="list-unstyled mt-1">
                     <li th:each="reply : ${comment.replies}">
-                        <div th:replace="~{fragments/comment :: comment(comment=${reply}, depth=${depth + 1})}"></div>
+                        <div th:replace="~{fragments/comment :: comment(comment=${reply}, depth=${depth + 1}, boardCode=${boardCode}, post=${post})}"></div>
                     </li>
                 </ul>
             </div>

@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/posts")
+@RequestMapping("/boards/{boardCode}/posts")
 @RequiredArgsConstructor
 public class PostController {
 
@@ -35,15 +35,18 @@ public class PostController {
 
     @GetMapping
     public String list(
+            @PathVariable String boardCode,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             Model model) {
-        Page<Post> posts = postApplicationService.getPosts(pageable);
+        Page<Post> posts = postApplicationService.getPosts(boardCode, pageable);
+        model.addAttribute("boardCode", boardCode);
         model.addAttribute("posts", posts);
         return "posts/list";
     }
 
     @GetMapping("/{id}")
     public String detail(
+            @PathVariable String boardCode,
             @PathVariable Long id,
             @RequestParam(required = false) Long editComment,
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -51,6 +54,7 @@ public class PostController {
         Post post = postApplicationService.getPost(id);
         List<Comment> comments = commentApplicationService.getCommentsByPostId(id);
         int commentCount = countCommentsRecursive(comments);
+        model.addAttribute("boardCode", boardCode);
         model.addAttribute("post", post);
         model.addAttribute("comments", comments);
         model.addAttribute("commentCount", commentCount);
@@ -77,41 +81,63 @@ public class PostController {
     }
 
     @GetMapping("/new")
-    public String createForm(Model model) {
-        model.addAttribute("postForm", new PostForm());
+    public String createForm(@PathVariable String boardCode, Model model) {
+        PostForm form = new PostForm();
+        form.setBoardCode(boardCode);
+        model.addAttribute("boardCode", boardCode);
+        model.addAttribute("postForm", form);
         model.addAttribute("post", null);
         return "posts/form";
     }
 
     @PostMapping
     public String create(
+            @PathVariable String boardCode,
             @Valid @ModelAttribute PostForm postForm,
             BindingResult result,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
         if (result.hasErrors()) {
+            postForm.setBoardCode(boardCode);
+            model.addAttribute("boardCode", boardCode);
+            model.addAttribute("post", null);
             return "posts/form";
         }
         CreatePostCommand command = new CreatePostCommand(
+                boardCode,
                 postForm.getTitle(),
                 postForm.getContent(),
-                userDetails.getId()
+                userDetails.getId(),
+                postForm.getLocation(),
+                postForm.getMealPrice(),
+                postForm.getGuaranteeMin(),
+                postForm.getRentalFee(),
+                postForm.getEtcFee()
         );
         Long postId = postApplicationService.createPost(command);
-        return "redirect:/posts/" + postId;
+        return "redirect:/boards/" + boardCode + "/posts/" + postId;
     }
 
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable String boardCode, @PathVariable Long id, Model model) {
         Post post = postApplicationService.getPost(id);
+        PostForm form = new PostForm(post.getTitle(), post.getContent());
+        form.setBoardCode(boardCode);
+        form.setLocation(post.getLocation());
+        form.setMealPrice(post.getMealPrice());
+        form.setGuaranteeMin(post.getGuaranteeMin());
+        form.setRentalFee(post.getRentalFee());
+        form.setEtcFee(post.getEtcFee());
+        model.addAttribute("boardCode", boardCode);
         model.addAttribute("post", post);
-        model.addAttribute("postForm", new PostForm(post.getTitle(), post.getContent()));
+        model.addAttribute("postForm", form);
         return "posts/form";
     }
 
     @PutMapping(value = "/{id}", produces = "application/json")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> update(
+            @PathVariable String boardCode,
             @PathVariable Long id,
             @RequestBody PostForm postForm) {
         if (postForm.getTitle() == null || postForm.getTitle().isBlank()) {
@@ -126,7 +152,15 @@ public class PostController {
             err.put("message", "내용을 입력해주세요");
             return ResponseEntity.badRequest().body(err);
         }
-        UpdatePostCommand command = new UpdatePostCommand(postForm.getTitle(), postForm.getContent());
+        UpdatePostCommand command = new UpdatePostCommand(
+                postForm.getTitle(),
+                postForm.getContent(),
+                postForm.getLocation(),
+                postForm.getMealPrice(),
+                postForm.getGuaranteeMin(),
+                postForm.getRentalFee(),
+                postForm.getEtcFee()
+        );
         postApplicationService.updatePost(id, command);
         Map<String, Object> body = new HashMap<>();
         body.put("success", true);
@@ -136,7 +170,9 @@ public class PostController {
 
     @DeleteMapping(value = "/{id}", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> delete(
+            @PathVariable String boardCode,
+            @PathVariable Long id) {
         postApplicationService.deletePost(id);
         Map<String, Object> body = new HashMap<>();
         body.put("success", true);

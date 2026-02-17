@@ -8,7 +8,7 @@
 <body>
 <div layout:fragment="content">
     <h1 class="mb-4" th:text="${post != null ? '글 수정' : '글 작성'}">글 작성</h1>
-    <form id="post-form" th:action="@{${post != null ? '/posts/' + post.id : '/posts'}}" th:object="${postForm}" th:data-post-id="${post?.id}" method="post" accept-charset="UTF-8">
+    <form id="post-form" th:action="${post != null} ? @{/boards/{boardCode}/posts/{id}(boardCode=${postForm.boardCode}, id=${post.id})} : @{/boards/{boardCode}/posts(boardCode=${postForm.boardCode})}" th:object="${postForm}" th:attr="data-post-id=${post?.id}, data-board-code=${postForm.boardCode}" method="post" accept-charset="UTF-8">
         <div class="mb-3">
             <label for="title" class="form-label">제목</label>
             <input type="text" class="form-control" id="title" th:field="*{title}" required>
@@ -19,8 +19,33 @@
             <textarea class="form-control" id="content" th:field="*{content}" rows="10" required></textarea>
             <div class="text-danger" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
         </div>
+        <div th:if="${postForm.boardCode == 'VENUE'}" class="mb-3 border rounded p-3 bg-light">
+            <h6 class="mb-2">예식장 정보</h6>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label for="location" class="form-label small">장소</label>
+                    <input type="text" class="form-control form-control-sm" id="location" th:field="*{location}" placeholder="예식장 이름">
+                </div>
+                <div class="col-md-6">
+                    <label for="mealPrice" class="form-label small">식대(인당, 원)</label>
+                    <input type="number" class="form-control form-control-sm" id="mealPrice" th:field="*{mealPrice}" placeholder="0">
+                </div>
+                <div class="col-md-6">
+                    <label for="guaranteeMin" class="form-label small">보증인원</label>
+                    <input type="number" class="form-control form-control-sm" id="guaranteeMin" th:field="*{guaranteeMin}" placeholder="0">
+                </div>
+                <div class="col-md-6">
+                    <label for="rentalFee" class="form-label small">대관료(원)</label>
+                    <input type="number" class="form-control form-control-sm" id="rentalFee" th:field="*{rentalFee}" placeholder="0">
+                </div>
+                <div class="col-md-6">
+                    <label for="etcFee" class="form-label small">기타비용(원)</label>
+                    <input type="number" class="form-control form-control-sm" id="etcFee" th:field="*{etcFee}" placeholder="0">
+                </div>
+            </div>
+        </div>
         <button type="submit" class="btn btn-primary" id="post-submit-btn" th:text="${post != null ? '수정' : '등록'}">등록</button>
-        <a th:href="@{/posts}" class="btn btn-outline-secondary">취소</a>
+        <a th:href="@{/boards/{boardCode}/posts(boardCode=${postForm.boardCode})}" class="btn btn-outline-secondary">취소</a>
     </form>
 </div>
 </body>

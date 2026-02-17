@@ -14,13 +14,13 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" th:href="@{/posts}">결혼 준비 게시판</a>
+        <a class="navbar-brand" th:href="@{/boards/GENERAL/posts}">결혼 준비 게시판</a>
         <div class="navbar-nav ms-auto align-items-center">
             <span class="navbar-text text-white me-3 py-0" sec:authorize="isAuthenticated()">
                 <span sec:authentication="name">user</span>님 환영합니다
             </span>
-            <a class="nav-link text-white py-2" th:href="@{/posts}" sec:authorize="isAuthenticated()">글 목록</a>
-            <a class="nav-link text-white py-2" th:href="@{/posts/new}" sec:authorize="isAuthenticated()">글 작성</a>
+            <a class="nav-link text-white py-2" th:href="@{/boards/GENERAL/posts}" sec:authorize="isAuthenticated()">자유게시판</a>
+            <a class="nav-link text-white py-2" th:href="@{/boards/VENUE/posts}" sec:authorize="isAuthenticated()">예식장</a>
             <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="d-inline ms-1" accept-charset="UTF-8">
                 <button type="submit" class="btn btn-link text-white text-decoration-none px-2 py-2 m-0 border-0">로그아웃</button>
             </form>

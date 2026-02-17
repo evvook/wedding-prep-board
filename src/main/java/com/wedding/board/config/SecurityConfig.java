@@ -23,21 +23,21 @@ public class SecurityConfig {
         http
             .authorizeRequests(auth -> auth
                 .antMatchers("/", "/css/**", "/js/**", "/h2-console/**", "/login").permitAll()
-                .antMatchers(HttpMethod.GET, "/posts", "/posts/*").permitAll()
-                .antMatchers("/posts/new", "/posts/*/edit").authenticated()
-                .antMatchers(HttpMethod.POST, "/posts", "/posts/*").authenticated()
-                .antMatchers(HttpMethod.PUT, "/posts/*", "/posts/*/comments/*").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/posts/*", "/posts/*/comments/*").authenticated()
-                .antMatchers(HttpMethod.POST, "/posts/*/comments").authenticated()
+                .antMatchers(HttpMethod.GET, "/boards/*/posts", "/boards/*/posts/*").permitAll()
+                .antMatchers("/boards/*/posts/new", "/boards/*/posts/*/edit").authenticated()
+                .antMatchers(HttpMethod.POST, "/boards/*/posts", "/boards/*/posts/*").authenticated()
+                .antMatchers(HttpMethod.PUT, "/boards/*/posts/*", "/boards/*/posts/*/comments/*").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/boards/*/posts/*", "/boards/*/posts/*/comments/*").authenticated()
+                .antMatchers(HttpMethod.POST, "/boards/*/posts/*/comments").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/posts", true)
+                .defaultSuccessUrl("/boards/GENERAL/posts", true)
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/posts")
+                .logoutSuccessUrl("/boards/GENERAL/posts")
                 .permitAll()
             )
             .userDetailsService(userDetailsService);

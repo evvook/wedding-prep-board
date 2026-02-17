@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.wedding.board.domain.board.Board;
 import com.wedding.board.domain.comment.Comment;
 import com.wedding.board.domain.comment.CommentRepository;
 import com.wedding.board.domain.post.Post;
@@ -38,11 +39,13 @@ class CommentApplicationServiceTest {
     @InjectMocks
     private CommentApplicationService commentApplicationService;
 
+    private final Board board = Board.of("GENERAL", "자유게시판");
+
     @Test
     @DisplayName("getCommentsByPostId: 게시글의 댓글 목록을 작성일 순으로 반환한다")
     void getCommentsByPostId() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Comment comment = Comment.create("댓글", post, author);
         given(commentRepository.findByPostIdOrderByCreatedAtAsc(1L)).willReturn(List.of(comment));
 
@@ -56,7 +59,7 @@ class CommentApplicationServiceTest {
     @DisplayName("createComment: 댓글을 생성하고 id를 반환한다")
     void createComment() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
         given(userRepository.findById(1L)).willReturn(Optional.of(author));
         given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
@@ -87,7 +90,7 @@ class CommentApplicationServiceTest {
     @DisplayName("createComment: 대댓글을 생성한다")
     void createComment_reply() {
         User author = User.create("user1", "encoded");
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         ReflectionTestUtils.setField(post, "id", 1L);
         Comment parent = Comment.create("부모 댓글", post, author);
         ReflectionTestUtils.setField(parent, "id", 1L);
@@ -112,7 +115,7 @@ class CommentApplicationServiceTest {
     void updateComment() {
         User author = User.create("user1", "encoded");
         ReflectionTestUtils.setField(author, "id", 1L);
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Comment comment = Comment.create("댓글", post, author);
         ReflectionTestUtils.setField(comment, "id", 1L);
         given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
@@ -128,7 +131,7 @@ class CommentApplicationServiceTest {
     void updateComment_notAuthor() {
         User author = User.create("user1", "encoded");
         ReflectionTestUtils.setField(author, "id", 1L);
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Comment comment = Comment.create("댓글", post, author);
         ReflectionTestUtils.setField(comment, "id", 1L);
         given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
@@ -143,7 +146,7 @@ class CommentApplicationServiceTest {
     void deleteComment() {
         User author = User.create("user1", "encoded");
         ReflectionTestUtils.setField(author, "id", 1L);
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Comment comment = Comment.create("댓글", post, author);
         ReflectionTestUtils.setField(comment, "id", 1L);
         given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
@@ -159,7 +162,7 @@ class CommentApplicationServiceTest {
     void deleteComment_notAuthor() {
         User author = User.create("user1", "encoded");
         ReflectionTestUtils.setField(author, "id", 1L);
-        Post post = Post.create("제목", "내용", author);
+        Post post = Post.create(board, "제목", "내용", author, null, null, null, null, null);
         Comment comment = Comment.create("댓글", post, author);
         ReflectionTestUtils.setField(comment, "id", 1L);
         given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
