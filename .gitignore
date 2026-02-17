@@ -1,0 +1,31 @@
+# Build
+build/
+out/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot (로컬 설정 제외)
+application-local.yml
+application-*.yml
+!application.yml
+
+# H2 DB
+*.db
+*.trace.db
+
+# Debug / Cursor
+.cursor/

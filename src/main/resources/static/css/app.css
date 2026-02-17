@@ -1,0 +1,14 @@
+/**
+ * 게시판 공통 스타일
+ */
+
+/* 댓글/답글 영역 */
+.comment-item .btn-link {
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+/* 답글 폼 포커스 시 강조 */
+[id^="reply-form-"]:focus-within input[name="content"] {
+  border-color: var(--bs-primary);
+}

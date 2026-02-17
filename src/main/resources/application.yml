@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: wedding-prep-board
+  thymeleaf:
+    encoding: UTF-8
+
+  # H2 DB (개발용)
+  datasource:
+    url: jdbc:h2:mem:boarddb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

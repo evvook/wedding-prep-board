@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}">
+<head>
+    <title>글 상세</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <article>
+        <h1 th:text="${post.title}">제목</h1>
+        <div class="text-muted small mb-3">
+            <span th:text="${post.author.username}">작성자</span> |
+            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+        </div>
+        <div th:utext="${post.content}" class="border rounded p-3 bg-light">내용</div>
+    </article>
+    <div class="mt-4">
+        <a th:href="@{/posts}" class="btn btn-outline-secondary">목록</a>
+        <a sec:authorize="isAuthenticated()" th:href="@{/posts/{id}/edit(id=${post.id})}" class="btn btn-outline-primary">수정</a>
+        <button type="button" sec:authorize="isAuthenticated()" class="btn btn-outline-danger" id="post-delete-btn" th:data-post-id="${post.id}">삭제</button>
+    </div>
+
+    <hr class="my-4">
+    <section id="comments" class="mt-4">
+        <h5>댓글 <span th:text="${commentCount}">0</span>개</h5>
+        <ul class="list-group list-group-flush mb-4">
+            <li th:each="comment : ${comments}" class="list-group-item px-0 border-0">
+                <div th:replace="~{fragments/comment :: comment(comment=${comment}, depth=0)}"></div>
+            </li>
+            <li th:if="${#lists.isEmpty(comments)}" class="list-group-item text-muted border-0">아직 댓글이 없습니다.</li>
+        </ul>
+
+        <div id="comment-form" sec:authorize="isAuthenticated()">
+            <h6 class="mb-2">댓글 작성</h6>
+            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" th:object="${commentForm}" method="post" accept-charset="UTF-8" th:if="${commentForm.parentId == null}">
+                <div class="mb-2">
+                    <textarea class="form-control" th:field="*{content}" rows="3" placeholder="댓글을 입력하세요"></textarea>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">댓글 등록</button>
+            </form>
+            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" th:object="${commentForm}" method="post" accept-charset="UTF-8" th:if="${commentForm.parentId != null}">
+                <input type="hidden" name="parentId" th:field="*{parentId}">
+                <div class="mb-2">
+                    <textarea class="form-control" th:field="*{content}" rows="3" placeholder="댓글을 입력하세요"></textarea>
+                    <div class="text-danger small" th:errors="*{content}"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">댓글 등록</button>
+            </form>
+        </div>
+        <p sec:authorize="!isAuthenticated()" class="text-muted">댓글을 작성하려면 <a th:href="@{/login}">로그인</a>해주세요.</p>
+    </section>
+</div>
+</body>
+</html>

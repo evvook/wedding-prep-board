@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>글 작성/수정</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 class="mb-4" th:text="${post != null ? '글 수정' : '글 작성'}">글 작성</h1>
+    <form id="post-form" th:action="@{${post != null ? '/posts/' + post.id : '/posts'}}" th:object="${postForm}" th:data-post-id="${post?.id}" method="post" accept-charset="UTF-8">
+        <div class="mb-3">
+            <label for="title" class="form-label">제목</label>
+            <input type="text" class="form-control" id="title" th:field="*{title}" required>
+            <div class="text-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+        </div>
+        <div class="mb-3">
+            <label for="content" class="form-label">내용</label>
+            <textarea class="form-control" id="content" th:field="*{content}" rows="10" required></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="post-submit-btn" th:text="${post != null ? '수정' : '등록'}">등록</button>
+        <a th:href="@{/posts}" class="btn btn-outline-secondary">취소</a>
+    </form>
+</div>
+</body>
+</html>

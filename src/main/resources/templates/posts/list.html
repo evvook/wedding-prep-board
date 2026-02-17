@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}">
+<head>
+    <title>글 목록</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 class="mb-4">게시글 목록</h1>
+    <div sec:authorize="!isAuthenticated()" class="alert alert-info">
+        글 작성/수정/삭제를 하려면 <a th:href="@{/login}">로그인</a>해주세요.
+    </div>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="post, stat : ${posts}" th:with="rowNum=${posts.totalElements - posts.number * posts.size - stat.index}">
+            <td th:text="${rowNum}">1</td>
+            <td>
+                <a th:href="@{/posts/{id}(id=${post.id})}" th:text="${post.title}">제목</a>
+            </td>
+            <td th:text="${post.author.username}">user1</td>
+            <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01</td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(posts.content)}">
+            <td colspan="4" class="text-center text-muted">등록된 글이 없습니다.</td>
+        </tr>
+        </tbody>
+    </table>
+    <div th:if="${posts.totalPages > 0}" class="d-flex justify-content-between align-items-center">
+        <a th:if="${posts.hasPrevious()}" th:href="@{/posts(page=${posts.number - 1})}" class="btn btn-outline-primary">이전</a>
+        <span th:text="'페이지 ' + (posts.number + 1) + ' / ' + posts.totalPages">페이지 1 / 1</span>
+        <a th:if="${posts.hasNext()}" th:href="@{/posts(page=${posts.number + 1})}" class="btn btn-outline-primary">다음</a>
+    </div>
+</div>
+</body>
+</html>
